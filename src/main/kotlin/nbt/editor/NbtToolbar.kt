@@ -22,41 +22,49 @@ package com.demonwav.mcdev.nbt.editor
 
 import com.demonwav.mcdev.nbt.NbtVirtualFile
 import com.demonwav.mcdev.util.runWriteTaskLater
-import javax.swing.JButton
+import com.intellij.ui.dsl.builder.Cell
+import com.intellij.ui.dsl.builder.panel
 import javax.swing.JComboBox
-import javax.swing.JPanel
 
 class NbtToolbar(nbtFile: NbtVirtualFile) {
-    lateinit var panel: JPanel
-    private lateinit var compressionBox: JComboBox<CompressionSelection>
-    lateinit var saveButton: JButton
+    private lateinit var compressionBox: Cell<JComboBox<CompressionSelection>>
 
-    private var lastSelection: CompressionSelection
+    val panel = panel {
+        row {
+            label("File Type:")
+            compressionBox = comboBox(listOf(CompressionSelection.GZIP, CompressionSelection.UNCOMPRESSED))
+            button("Save") {
+                runWriteTaskLater {
+                    nbtFile.writeFile(this)
+                }
+            }
+        }
+    }
+
+    //private var lastSelection: CompressionSelection
 
     init {
-        compressionBox.addItem(CompressionSelection.GZIP)
-        compressionBox.addItem(CompressionSelection.UNCOMPRESSED)
-        compressionBox.selectedItem =
-            if (nbtFile.isCompressed) CompressionSelection.GZIP else CompressionSelection.UNCOMPRESSED
-        lastSelection = selection
+        /*compressionBox.selectedItem =
+            if (nbtFile.isCompressed) CompressionSelection.GZIP else CompressionSelection.UNCOMPRESSED*/
+        //lastSelection = selection
 
         if (!nbtFile.isWritable || !nbtFile.parseSuccessful) {
-            compressionBox.isEnabled = false
+            compressionBox.enabled(false)
         }
 
         if (!nbtFile.parseSuccessful) {
             panel.isVisible = false
         }
 
-        saveButton.addActionListener {
+        /*saveButton.addActionListener {
             lastSelection = selection
 
             runWriteTaskLater {
                 nbtFile.writeFile(this)
             }
-        }
+        }*/
     }
 
     val selection
-        get() = compressionBox.selectedItem as CompressionSelection
+        get() = compressionBox.item as CompressionSelection
 }
